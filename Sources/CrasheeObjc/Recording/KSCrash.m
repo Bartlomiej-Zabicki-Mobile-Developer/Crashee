@@ -30,15 +30,15 @@
 #import "KSCrashC.h"
 #import "KSCrashDoctor.h"
 #import "KSCrashReportFields.h"
-#import "KSCrashMonitor_AppState.h"
-#import "KSJSONCodecObjC.h"
-#import "NSError+SimpleConstructor.h"
-#import "KSCrashMonitorContext.h"
-#import "KSCrashMonitor_System.h"
+#import "Monitors/KSCrashMonitor_AppState.h"
+#import "Tools/KSJSONCodecObjC.h"
+#import "Tools/NSError+SimpleConstructor.h"
+#import "Monitors/KSCrashMonitorContext.h"
+#import "Monitors/KSCrashMonitor_System.h"
 #import "KSSystemCapabilities.h"
 
 //#define KSLogger_LocalLevel TRACE
-#import "KSLogger.h"
+#import "Tools/KSLogger.h"
 
 #include <inttypes.h>
 #if KSCRASH_HAS_UIKIT
