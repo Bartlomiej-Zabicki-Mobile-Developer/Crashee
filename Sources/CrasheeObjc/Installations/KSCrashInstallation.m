@@ -355,6 +355,12 @@ static void crashCallback(const KSCrashReportWriter* writer)
     [handler sendAllReportsWithCompletion:onCompletion];
 }
 
+- (void) deleteAllReports
+{
+    KSCrash* handler = [KSCrash sharedInstance];
+    [handler deleteAllReports];
+}
+
 - (void) addPreFilter:(id<KSCrashReportFilter>) filter
 {
     [self.prependedFilters addFilter:filter];

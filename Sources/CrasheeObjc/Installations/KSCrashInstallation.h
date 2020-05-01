@@ -60,6 +60,7 @@
  * @param onCompletion Called when sending is complete (nil = ignore).
  */
 - (void) sendAllReportsWithCompletion:(KSCrashReportFilterCompletion) onCompletion;
+- (void) deleteAllReports;
 
 /** Add a filter that gets executed before all normal filters.
  * Prepended filters will be executed in the order in which they were added.
