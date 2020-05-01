@@ -6,7 +6,7 @@ final class CrasheeTests: XCTestCase {
         // This is an example of a functional test case.
         // Use XCTAssert and related functions to verify your tests produce the correct
         // results.
-        XCTAssertEqual(Crashee().text, "Hello, World!")
+//        XCTAssertEqual(TestWrapper().text, "Hello, World!")
     }
 
     static var allTests = [
