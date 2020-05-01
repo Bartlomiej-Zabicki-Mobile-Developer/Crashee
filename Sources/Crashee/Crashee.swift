@@ -16,3 +16,15 @@ public struct TestWrapper {
     }
     
 }
+
+public final class Crashee: NSObject {
+    
+    public static let shared = Crashee()
+    private override init() {}
+    public let webInstallation = KSCrashInstallationStandard.sharedInstance
+    
+    public func setup(token: String) {
+        
+    }
+    
+}

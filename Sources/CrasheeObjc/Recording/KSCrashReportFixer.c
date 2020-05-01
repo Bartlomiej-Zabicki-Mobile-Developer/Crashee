@@ -39,35 +39,17 @@
 
 #define MAX_DEPTH 100
 #define MAX_NAME_LENGTH 100
-#define REPORT_VERSION_COMPONENTS_COUNT 3
 
 static char* datePaths[][MAX_DEPTH] =
-{
-    {"", KSCrashField_Report, KSCrashField_Timestamp},
-    {"", KSCrashField_RecrashReport, KSCrashField_Report, KSCrashField_Timestamp},
-};
-static int datePathsCount = sizeof(datePaths) / sizeof(*datePaths);
-
-static char* demanglePaths[][MAX_DEPTH] =
-{
-    {"", KSCrashField_Crash, KSCrashField_Threads, "", KSCrashField_Backtrace, KSCrashField_Contents, "", KSCrashField_SymbolName},
-    {"", KSCrashField_RecrashReport, KSCrashField_Crash, KSCrashField_Threads, "", KSCrashField_Backtrace, KSCrashField_Contents, "", KSCrashField_SymbolName},
-    {"", KSCrashField_Crash, KSCrashField_Error, KSCrashField_CPPException, KSCrashField_Name},
-    {"", KSCrashField_RecrashReport, KSCrashField_Crash, KSCrashField_Error, KSCrashField_CPPException, KSCrashField_Name},
-};
-static int demanglePathsCount = sizeof(demanglePaths) / sizeof(*demanglePaths);
-
-static char* versionPaths[][MAX_DEPTH] =
 {
     {"", KSCrashField_Report, KSCrashField_Version},
     {"", KSCrashField_RecrashReport, KSCrashField_Report, KSCrashField_Version},
 };
-static int versionPathsCount = sizeof(versionPaths) / sizeof(*versionPaths);
+static int datePathsCount = sizeof(datePaths) / sizeof(*datePaths);
 
 typedef struct
 {
     KSJSONEncodeContext* encodeContext;
-    int reportVersionComponents[REPORT_VERSION_COMPONENTS_COUNT];
     char objectPath[MAX_DEPTH][MAX_NAME_LENGTH];
     int currentDepth;
     char* outputPtr;
@@ -135,30 +117,9 @@ static bool matchesAPath(FixupContext* context, const char* name, char* paths[][
     return false;
 }
 
-static bool matchesMinVersion(FixupContext* context, int major, int minor, int patch)
-{
-    // Works only for report version 3.1.0 and above. See KSCrashReportVersion.h
-    bool result = false;
-    int *parts = context->reportVersionComponents;
-    result = result || (parts[0] > major);
-    result = result || (parts[0] == major && parts[1] > minor);
-    result = result || (parts[0] == major && parts[1] == minor && parts[2] >= patch);
-    return result;
-}
-
-static bool shouldDemangle(FixupContext* context, const char* name)
-{
-    return matchesAPath(context, name, demanglePaths, demanglePathsCount);
-}
-
 static bool shouldFixDate(FixupContext* context, const char* name)
 {
     return matchesAPath(context, name, datePaths, datePathsCount);
-}
-
-static bool shouldSaveVersion(FixupContext* context, const char* name)
-{
-    return matchesAPath(context, name, versionPaths, versionPathsCount);
 }
 
 static int onBooleanElement(const char* const name,
@@ -185,16 +146,8 @@ static int onIntegerElement(const char* const name,
     int result = KSJSON_OK;
     if(shouldFixDate(context, name))
     {
-        char buffer[28];
-
-        if(matchesMinVersion(context, 3, 3, 0))
-        {
-            ksdate_utcStringFromMicroseconds(value, buffer);
-        }
-        else
-        {
-            ksdate_utcStringFromTimestamp((time_t)value, buffer);
-        }
+        char buffer[21];
+        ksdate_utcStringFromTimestamp((time_t)value, buffer);
 
         result = ksjson_addStringElement(context->encodeContext, name, buffer, (int)strlen(buffer));
     }
@@ -218,39 +171,9 @@ static int onStringElement(const char* const name,
 {
     FixupContext* context = (FixupContext*)userData;
     const char* stringValue = value;
-    char* demangled = NULL;
-    if(shouldDemangle(context, name))
-    {
-        demangled = ksdm_demangleCPP(value);
-#if KSCRASH_HAS_SWIFT
-        if(demangled == NULL)
-        {
-            demangled = ksdm_demangleSwift(value);
-        }
-#endif
-        if(demangled != NULL)
-        {
-            stringValue = demangled;
-        }
-    }
+
     int result = ksjson_addStringElement(context->encodeContext, name, stringValue, (int)strlen(stringValue));
-    if(demangled != NULL)
-    {
-        free(demangled);
-    }
-    if(shouldSaveVersion(context, name))
-    {
-        memset(context->reportVersionComponents, 0, sizeof(context->reportVersionComponents));
-        int versionPartsIndex = 0;
-        char* mutableValue = strdup(value);
-        char* versionPart = strtok(mutableValue, ".");
-        while(versionPart != NULL && versionPartsIndex < REPORT_VERSION_COMPONENTS_COUNT)
-        {
-            context->reportVersionComponents[versionPartsIndex++] = atoi(versionPart);
-            versionPart = strtok(NULL, ".");
-        }
-        free(mutableValue);
-    }
+
     return result;
 }
 
@@ -305,7 +228,7 @@ static int addJSONData(const char* data, int length, void* userData)
     memcpy(context->outputPtr, data, length);
     context->outputPtr += length;
     context->outputBytesLeft -= length;
-    
+
     return KSJSON_OK;
 }
 
@@ -330,21 +253,31 @@ char* kscrf_fixupCrashReport(const char* crashReport)
     };
     int stringBufferLength = 10000;
     char* stringBuffer = malloc((unsigned)stringBufferLength);
+    if(stringBuffer == NULL)
+    {
+        KSLOG_ERROR("Failed to allocate string buffer of size %ul", stringBufferLength);
+        return NULL;
+    }
     int crashReportLength = (int)strlen(crashReport);
     int fixedReportLength = (int)(crashReportLength * 1.5);
     char* fixedReport = malloc((unsigned)fixedReportLength);
+    if(fixedReport == NULL)
+    {
+        free(stringBuffer);
+        KSLOG_ERROR("Failed to allocate fixed report buffer of size %ld", fixedReportLength);
+        return NULL;
+    }
     KSJSONEncodeContext encodeContext;
     FixupContext fixupContext =
     {
         .encodeContext = &encodeContext,
-        .reportVersionComponents = {0},
         .currentDepth = 0,
         .outputPtr = fixedReport,
         .outputBytesLeft = fixedReportLength,
     };
-    
+
     ksjson_beginEncode(&encodeContext, true, addJSONData, &fixupContext);
-    
+
     int errorOffset = 0;
     int result = ksjson_decode(crashReport, (int)strlen(crashReport), stringBuffer, stringBufferLength, &callbacks, &fixupContext, &errorOffset);
     *fixupContext.outputPtr = '\0';

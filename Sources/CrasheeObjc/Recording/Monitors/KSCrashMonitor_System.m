@@ -140,8 +140,10 @@ static const char* stringSysctl(const char* name)
 static const char* dateString(time_t date)
 {
     char* buffer = malloc(21);
-    ksdate_utcStringFromTimestamp(date, buffer);
-    return buffer;
+    if(buffer != NULL)
+    {
+        ksdate_utcStringFromTimestamp(date, buffer);
+    }
 }
 
 /** Get a sysctl value as an NSDate.
