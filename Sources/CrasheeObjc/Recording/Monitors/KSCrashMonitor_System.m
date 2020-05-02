@@ -144,6 +144,7 @@ static const char* dateString(time_t date)
     {
         ksdate_utcStringFromTimestamp(date, buffer);
     }
+    return buffer;
 }
 
 /** Get a sysctl value as an NSDate.

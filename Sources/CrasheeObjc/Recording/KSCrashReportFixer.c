@@ -27,10 +27,6 @@
 #include "KSCrashReportFields.h"
 #include "KSSystemCapabilities.h"
 #include "Tools/KSJSONCodec.h"
-#include "Tools/KSDemangle_CPP.h"
-#if KSCRASH_HAS_SWIFT
-#include "Tools/KSDemangle_Swift.h"
-#endif
 #include "Tools/KSDate.h"
 #include "Tools/KSLogger.h"
 
@@ -39,6 +35,7 @@
 
 #define MAX_DEPTH 100
 #define MAX_NAME_LENGTH 100
+#define REPORT_VERSION_COMPONENTS_COUNT 3
 
 static char* datePaths[][MAX_DEPTH] =
 {
@@ -50,6 +47,7 @@ static int datePathsCount = sizeof(datePaths) / sizeof(*datePaths);
 typedef struct
 {
     KSJSONEncodeContext* encodeContext;
+    int reportVersionComponents[REPORT_VERSION_COMPONENTS_COUNT];
     char objectPath[MAX_DEPTH][MAX_NAME_LENGTH];
     int currentDepth;
     char* outputPtr;
@@ -146,7 +144,7 @@ static int onIntegerElement(const char* const name,
     int result = KSJSON_OK;
     if(shouldFixDate(context, name))
     {
-        char buffer[21];
+        char buffer[28];
         ksdate_utcStringFromTimestamp((time_t)value, buffer);
 
         result = ksjson_addStringElement(context->encodeContext, name, buffer, (int)strlen(buffer));
@@ -271,6 +269,7 @@ char* kscrf_fixupCrashReport(const char* crashReport)
     FixupContext fixupContext =
     {
         .encodeContext = &encodeContext,
+        .reportVersionComponents = {0},
         .currentDepth = 0,
         .outputPtr = fixedReport,
         .outputBytesLeft = fixedReportLength,
