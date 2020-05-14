@@ -96,6 +96,9 @@ class CrasheeSetup: BasicSetup {
     var crashHandlerData: CrashHandlerData?
     var fields: [String: CrashReportField] = [:]
     var prependedFilters: KSCrashReportFilterPipeline = KSCrashReportFilterPipeline()
+    private lazy var apiHandler = APIReportHandler(url: URL(string: "https://c89fa463.ngrok.io/crashreport")!,
+                                                   configuration: .init(headers: [:], method: "Post"))
+    private lazy var crashReporter: CrashReporter = CrashReporter.init(reportHandler: apiHandler, crashCompletion: &onCrash)
     
     var onCrash: KSReportWriteCallback? {
         didSet {
@@ -138,10 +141,8 @@ class CrasheeSetup: BasicSetup {
     }
     
     func install() {
-        var handler = KSCrash.sharedInstance()
 //        Self.g_crashHandlerData = crashHandlerData!
-        handler?.onCrash = onCrash
-        handler?.install()
+//        crashReporter.onCrash = onCrash
     }
     
     // MARK: - BasicSetup
@@ -152,9 +153,7 @@ class CrasheeSetup: BasicSetup {
     
     func sendAllReports(completion: KSCrashReportFilterCompletion?) {
         let sink = KSCrashReportFilterPipeline()
-        var handler = KSCrash.sharedInstance()
-        handler?.sink = sink
-        handler?.sendAllReports(completion: completion)
+        crashReporter.sendAllReports(with: completion)
     }
     
     func deleteAllReports(completion: DeleteCompletion) {

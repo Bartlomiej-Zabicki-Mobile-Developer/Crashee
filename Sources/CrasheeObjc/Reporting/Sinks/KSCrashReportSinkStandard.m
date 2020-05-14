@@ -36,7 +36,7 @@
 #import "../Filters/KSCrashReportFilterAppleFmt.h"
 #import "../Filters/KSCrashReportFilterBasic.h"
 #import "../Filters/KSCrashReportFilterGZip.h"
-
+ 
 //#define KSLogger_LocalLevel TRACE
 #import "../../Recording/Tools/KSLogger.h"
 

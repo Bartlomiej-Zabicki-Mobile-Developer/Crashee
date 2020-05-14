@@ -13,8 +13,6 @@ struct JSONConverter: CrasheeConverter {
 
 final class APISetup: CrasheeSetup {
     
-    override func converter() -> CrasheeConverter {
-        return JSONConverter()
-    }
+    
     
 }
