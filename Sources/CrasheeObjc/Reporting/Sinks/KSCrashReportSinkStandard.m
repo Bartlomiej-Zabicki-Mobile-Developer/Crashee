@@ -88,6 +88,37 @@
 - (void) filterReports:(NSArray*) reports
           onCompletion:(KSCrashReportFilterCompletion) onCompletion
 {
+    NSString *srcFilePath = @"crash-report.json";
+    NSString *destFilePath = @"crash-report.crash";
+
+    NSData *myJSON = [NSData dataWithContentsOfFile:srcFilePath];
+
+    NSError* localError = nil;
+
+    NSDictionary *parsedJSON = [NSJSONSerialization JSONObjectWithData:myJSON options:0 error:&localError];
+
+    if(localError != nil)
+    {
+        return ;
+    }
+
+    id filter = [KSCrashReportFilterAppleFmt filterWithReportStyle:KSAppleReportStyleSymbolicatedSideBySide];
+
+    [filter filterReports:reports
+             onCompletion:^(NSArray *filteredReports, BOOL completed, NSError *error) {
+                 if(error != nil) {
+                     return;
+                 }
+
+                 if(completed) {
+                     NSString *contents = [filteredReports objectAtIndex:0];
+                     [contents  writeToFile:destFilePath
+                               atomically:YES
+                                   encoding:NSStringEncodingConversionAllowLossy
+                                    error:nil];
+                 }
+             }];
+    
     NSError* error = nil;
     NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:self.url
                                                            cachePolicy:NSURLRequestReloadIgnoringLocalCacheData

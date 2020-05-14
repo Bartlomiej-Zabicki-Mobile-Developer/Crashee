@@ -1,29 +1,30 @@
 import CrasheeObjc
 
-public struct TestWrapper {
-    private(set) public var token = "Hello, World!"
+public final class Crashee {
     
-    public func test() {
-//        Foo()
-//        let foo = Foo()
-//        Foo()
-        let x = Foo().foo()
-        print("X foo: \(x)")
-    }
-    
-    public init(token: String) {
-        self.token = token
-    }
-    
-}
-
-public final class Crashee: NSObject {
+    // MARK: - Singleton
     
     public static let shared = Crashee()
-    private override init() {}
-    public let webInstallation = KSCrashInstallationStandard.sharedInstance
+    private init() {}
     
-    public func setup(token: String) {
+    // MARK: - Properties
+    
+    private(set) public var token: String?
+    private let setup = CrasheeSetup()
+    
+    // MARK: - Functions
+    
+    public func setup(with token: String) {
+        self.token = token
+        setup.install()
+    }
+    
+    public func sendAllReports(completion: @escaping () -> Void) {
+        setup.sendAllReports { (reports, _, error) in
+            print("Reports: \(reports?.count)")
+            print("Error: \(error)")
+            completion()
+        }
         
     }
     
