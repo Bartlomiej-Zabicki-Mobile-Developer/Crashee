@@ -8,7 +8,7 @@
 import CrasheeObjc
 
 protocol ReportHandler {
-    func handle(reports: [CrashReport], completion: @escaping KSCrashReportFilterCompletion)
+    func handle(reports: [CrashReport], completion: @escaping ReportsCompletion)
 }
 
 final class APIReportHandler: ReportHandler {
@@ -37,7 +37,7 @@ final class APIReportHandler: ReportHandler {
     
     // MARK: - Functions
     
-    public func handle(reports: [CrashReport], completion: @escaping KSCrashReportFilterCompletion) {
+    public func handle(reports: [CrashReport], completion: @escaping ReportsCompletion) {
         let reportsData = reports.compactMap({ try? encoder.encode($0) })
         networking.request(with: url,
                            method: configuration.method,
@@ -46,11 +46,9 @@ final class APIReportHandler: ReportHandler {
                            headers: configuration.headers,
                            encoding: .json,
                            onSuccess: { data in
-                            print("Success")
-                            completion(reports, true, nil)
+                            completion(.success(reports))
         }, onError: { error in
-            print("Error: \(error)")
-            completion(reports, false, error)
+            completion(.failure(.underlying(error)))
         })
     }
     

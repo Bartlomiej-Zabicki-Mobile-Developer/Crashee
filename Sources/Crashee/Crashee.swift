@@ -19,12 +19,8 @@ public final class Crashee {
         setup.changeToken(to: token)
     }
     
-    public func sendAllReports(completion: @escaping () -> Void) {
-        setup.sendAllReports { (reports, _, error) in
-            print("Reports: \(reports?.count)")
-            print("Error: \(error)")
-            completion()
-        }
+    public func sendAllReports(completion: @escaping ReportsCompletion) {
+        setup.sendAllReports(completion: completion)
         
     }
     

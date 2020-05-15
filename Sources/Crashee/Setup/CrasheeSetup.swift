@@ -51,8 +51,8 @@ class CrashReportField {
     var key: String?
     var value: String?
     var fieldBacking: Data?
-    var keyBacking: KSCString?
-    var valueBacking: KSCString?
+    var keyBacking: String?
+    var valueBacking: String?
     
     init(index: Int) {
         self.index = index
@@ -60,16 +60,16 @@ class CrashReportField {
     
     func set(key: String) {
         self.key = key
-        keyBacking = KSCString(string: key)
+        keyBacking = key
         field?.change(key: key)
     }
     
     func set(value: String) {
         var error: NSError
         do {
-            let jsonData = try KSJSONCodec.encode(value, options: KSJSONEncodeOptionPretty )
+//            let jsonData = try KSJSONCodec.encode(value, options: KSJSONEncodeOptionPretty )
             self.value = value
-            self.valueBacking = KSCString(data: jsonData)
+//            self.valueBacking = String(data: jsonData, encoding: .utf8)
             self.field?.change(value: value)
         } catch {
             print("Could not set value %@ for property %@: %@", value, self.key, error)
@@ -81,7 +81,7 @@ class CrashReportField {
 protocol BasicSetup {
     var onCrash: KSReportWriteCallback? { get  set }
     func converter() -> CrasheeConverter
-    func sendAllReports(completion: KSCrashReportFilterCompletion?)
+    func sendAllReports(completion: @escaping ReportsCompletion)
     func deleteAllReports(completion: DeleteCompletion)
     func addPreFilter(_ filter: KSCrashReportFilter?)
 }
@@ -146,7 +146,7 @@ class CrasheeSetup: BasicSetup {
         return JSONConverter()
     }
     
-    func sendAllReports(completion: KSCrashReportFilterCompletion?) {
+    func sendAllReports(completion: @escaping ReportsCompletion) {
         crashReporter.sendAllReports(with: completion)
     }
     

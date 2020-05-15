@@ -8,6 +8,12 @@
 import CrasheeObjc
 import UIKit
 
+public enum ReportsError: Swift.Error {
+    case underlying(Swift.Error)
+}
+
+public typealias ReportsCompletion = (Result<[CrashReport], ReportsError>) -> Void
+
 final class CrashReporter {
     
     // MARK: - Properties
@@ -45,10 +51,8 @@ final class CrashReporter {
     
     // MARK: - Functions
     
-    internal func sendAllReports(with completion: KSCrashReportFilterCompletion?) {
-        send(reports: allReports()) { (filteredReports, completed, error) in
-            kscrash_callCompletion(completion, filteredReports, completed, error)
-        }
+    internal func sendAllReports(with completion: @escaping ReportsCompletion) {
+        send(reports: allReports(), completion: completion)
     }
     
     internal func deleteAllReports() {
@@ -88,14 +92,8 @@ final class CrashReporter {
         return Data(bytesNoCopy: report, count: strlen(report), deallocator: .free)
     }
     
-    private func send(reports: [CrashReport], completion: @escaping  KSCrashReportFilterCompletion) {
-        guard !reports.isEmpty else {
-            kscrash_callCompletion(completion, reports, true, nil)
-            return
-        }
-        reportHandler.handle(reports: reports) { (filteredReports, completed, error) in
-        kscrash_callCompletion(completion, filteredReports, completed, error)
-        }
+    private func send(reports: [CrashReport], completion: @escaping ReportsCompletion) {
+        reportHandler.handle(reports: reports, completion: completion)
     }
     
     private func subscribeForNotifications() {

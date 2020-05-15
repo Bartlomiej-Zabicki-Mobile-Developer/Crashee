@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct CrashReport: Codable {
+public struct CrashReport: Codable {
     let binaryImages: [BinaryImage]
     var crash: Crash
     let debug, process: Debug
@@ -22,7 +22,7 @@ struct CrashReport: Codable {
 }
 
 // MARK: - BinaryImage
-struct BinaryImage: Codable {
+public struct BinaryImage: Codable {
     let cpuSubtype, cpuType, imageAddr, imageSize: Int
     let imageVmaddr, majorVersion, minorVersion: Int
     let name: String
@@ -44,13 +44,13 @@ struct BinaryImage: Codable {
 }
 
 // MARK: - Crash
-struct Crash: Codable {
+public struct Crash: Codable {
     let error: Error
     var threads: [CrashThread]
 }
 
 // MARK: - Error
-struct Error: Codable {
+public struct Error: Codable {
     let address: Int
     let mach: Mach
     let signal: Signal
@@ -58,7 +58,7 @@ struct Error: Codable {
 }
 
 // MARK: - Mach
-struct Mach: Codable {
+public struct Mach: Codable {
     let code: Int
     let codeName: String
     let exception: Int
@@ -75,7 +75,7 @@ struct Mach: Codable {
 }
 
 // MARK: - Signal
-struct Signal: Codable {
+public struct Signal: Codable {
     let code: Int
     let codeName, name: String
     let signal: Int
@@ -88,7 +88,7 @@ struct Signal: Codable {
 }
 
 // MARK: - Thread
-struct CrashThread: Codable {
+public struct CrashThread: Codable {
     var backtrace: Backtrace
     let crashed, currentThread: Bool
     let index: Int
@@ -107,7 +107,7 @@ struct CrashThread: Codable {
 }
 
 // MARK: - Backtrace
-struct Backtrace: Codable {
+public struct Backtrace: Codable {
     var contents: [BacktraceContent]
     let skipped: Int
     
@@ -117,7 +117,7 @@ struct Backtrace: Codable {
 }
 
 // MARK: - Content
-struct BacktraceContent: Codable {
+public struct BacktraceContent: Codable {
     let instructionAddr: Int
     let objectAddr: Int?
     let objectName: String?
@@ -136,18 +136,18 @@ struct BacktraceContent: Codable {
 }
 
 // MARK: - Registers
-struct Registers: Codable {
+public struct Registers: Codable {
     let basic: [String: Double]
     let exception: Exception?
 }
 
 // MARK: - Exception
-struct Exception: Codable {
+public struct Exception: Codable {
     let esr, exception, far: Int
 }
 
 // MARK: - Stack
-struct Stack: Codable {
+public struct Stack: Codable {
     let contents: String
     let dumpEnd, dumpStart: Int
     let growDirection: String
@@ -165,11 +165,11 @@ struct Stack: Codable {
 }
 
 // MARK: - Debug
-struct Debug: Codable {
+public struct Debug: Codable {
 }
 
 // MARK: - Report
-struct Report: Codable {
+public struct Report: Codable {
     let id, processName: String
 //    let timestamp: Date?
     let type, version: String
@@ -183,7 +183,7 @@ struct Report: Codable {
 }
 
 // MARK: - System
-struct System: Codable {
+public struct System: Codable {
     let cfBundleExecutable, cfBundleExecutablePath, cfBundleIdentifier, cfBundleName: String
     let cfBundleShortVersionString, cfBundleVersion: String
 //    let appStartTime: Double?
@@ -236,7 +236,7 @@ struct System: Codable {
 }
 
 // MARK: - ApplicationStats
-struct ApplicationStats: Codable {
+public struct ApplicationStats: Codable {
     let activeTimeSinceLastCrash, activeTimeSinceLaunch: Double
     let applicationActive, applicationInForeground: Bool
     let backgroundTimeSinceLastCrash, backgroundTimeSinceLaunch: Double
@@ -256,6 +256,6 @@ struct ApplicationStats: Codable {
 }
 
 // MARK: - Memory
-struct Memory: Codable {
+public struct Memory: Codable {
     let free, size, usable: Int
 }
