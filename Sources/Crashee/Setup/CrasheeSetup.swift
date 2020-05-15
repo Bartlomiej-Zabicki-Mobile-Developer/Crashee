@@ -96,8 +96,16 @@ class CrasheeSetup: BasicSetup {
     var crashHandlerData: CrashHandlerData?
     var fields: [String: CrashReportField] = [:]
     var prependedFilters: KSCrashReportFilterPipeline = KSCrashReportFilterPipeline()
+    private lazy var bundleName: String = (Bundle.main.infoDictionary?["CFBundleName"] ?? "Unknown") as! String
+    private var token: String = ""
+    private lazy var urlSession = URLSession(configuration: .default)
     private lazy var apiHandler = APIReportHandler(url: URL(string: "https://c89fa463.ngrok.io/crashreport")!,
-                                                   configuration: .init(headers: [:], method: "Post"))
+                                                   configuration: .init(headers: ["organizationToken": token,
+                                                                                  "User-Agent": "Crashee",
+                                                                                  "bundleName": bundleName,
+                                                                                  "bundleId": Bundle.main.bundleIdentifier ?? ""],
+                                                                        method: .post,
+                                                                        session: urlSession))
     private lazy var crashReporter: CrashReporter = CrashReporter.init(reportHandler: apiHandler, crashCompletion: &onCrash)
     
     var onCrash: KSReportWriteCallback? {
@@ -106,19 +114,11 @@ class CrasheeSetup: BasicSetup {
         }
     }
     
-    // MARK: - Initialization
-    
-    init() {}
-    
-    deinit {
-//        let handler = KSCrash.sharedInstance()
-//        if Self.g_crashHandlerData == crashHandlerData() {
-//            Self.g_crashHandlerData = nil
-//            handler?.onCrash = nil
-//        }
-    }
-    
     // MARK: - Functions
+    
+    func changeToken(to token: String) {
+        self.token = token
+    }
     
     func reportFieldFor(property: String) -> CrashReportField {
         guard fields[property] == nil else { return fields[property]! }
@@ -140,11 +140,6 @@ class CrasheeSetup: BasicSetup {
         field.value = value
     }
     
-    func install() {
-//        Self.g_crashHandlerData = crashHandlerData!
-//        crashReporter.onCrash = onCrash
-    }
-    
     // MARK: - BasicSetup
     
     func converter() -> CrasheeConverter {
@@ -152,7 +147,6 @@ class CrasheeSetup: BasicSetup {
     }
     
     func sendAllReports(completion: KSCrashReportFilterCompletion?) {
-        let sink = KSCrashReportFilterPipeline()
         crashReporter.sendAllReports(with: completion)
     }
     

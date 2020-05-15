@@ -16,7 +16,7 @@ public final class Crashee {
     
     public func setup(with token: String) {
         self.token = token
-        setup.install()
+        setup.changeToken(to: token)
     }
     
     public func sendAllReports(completion: @escaping () -> Void) {
