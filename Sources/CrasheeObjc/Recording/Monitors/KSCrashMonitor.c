@@ -29,7 +29,6 @@
 #include "KSCrashMonitorContext.h"
 #include "KSCrashMonitorType.h"
 
-#include "KSCrashMonitor_Deadlock.h"
 #include "KSCrashMonitor_MachException.h"
 #include "KSCrashMonitor_CPPException.h"
 #include "KSCrashMonitor_NSException.h"
@@ -37,7 +36,6 @@
 #include "KSCrashMonitor_System.h"
 #include "KSCrashMonitor_User.h"
 #include "KSCrashMonitor_AppState.h"
-#include "KSCrashMonitor_Zombie.h"
 #include "../Tools/KSDebug.h"
 #include "../Tools/KSThread.h"
 #include "../KSSystemCapabilities.h"
@@ -77,14 +75,6 @@ static Monitor g_monitors[] =
 //        .monitorType = KSCrashMonitorTypeNSException,
 //        .getAPI = kscm_nsexception_getAPI,
 //    },
-    {
-        .monitorType = KSCrashMonitorTypeMainThreadDeadlock,
-        .getAPI = kscm_deadlock_getAPI,
-    },
-    {
-        .monitorType = KSCrashMonitorTypeZombie,
-        .getAPI = kscm_zombie_getAPI,
-    },
 #endif
     {
         .monitorType = KSCrashMonitorTypeCPPException,

@@ -31,13 +31,11 @@
 #include "KSCrashReport.h"
 #include "KSCrashReportFixer.h"
 #include "KSCrashReportStore.h"
-#include "Monitors/KSCrashMonitor_Deadlock.h"
 #include "Monitors/KSCrashMonitor_User.h"
 #include "Tools/KSFileUtils.h"
 #include "Tools/KSObjC.h"
 #include "Tools/KSString.h"
 #include "Monitors/KSCrashMonitor_System.h"
-#include "Monitors/KSCrashMonitor_Zombie.h"
 #include "Monitors/KSCrashMonitor_AppState.h"
 #include "Monitors/KSCrashMonitorContext.h"
 #include "KSSystemCapabilities.h"
@@ -208,13 +206,6 @@ KSCrashMonitorType kscrash_setMonitoring(KSCrashMonitorType monitors)
 void kscrash_setUserInfoJSON(const char* const userInfoJSON)
 {
     kscrashreport_setUserInfoJSON(userInfoJSON);
-}
-
-void kscrash_setDeadlockWatchdogInterval(double deadlockWatchdogInterval)
-{
-#if KSCRASH_HAS_OBJC
-    kscm_setDeadlockHandlerWatchdogInterval(deadlockWatchdogInterval);
-#endif
 }
 
 void kscrash_setSearchQueueNames(bool searchQueueNames)

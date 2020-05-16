@@ -38,7 +38,6 @@
 #include "Tools/KSThread.h"
 #include "Tools/KSObjC.h"
 #include "Tools/KSSignalInfo.h"
-#include "Monitors/KSCrashMonitor_Zombie.h"
 #include "Tools/KSString.h"
 #include "KSCrashReportVersion.h"
 #include "Tools/KSStackCursor_Backtrace.h"
@@ -658,20 +657,6 @@ static bool isRestrictedClass(const char* name)
     return false;
 }
 
-static void writeZombieIfPresent(const KSCrashReportWriter* const writer,
-                                 const char* const key,
-                                 const uintptr_t address)
-{
-#if KSCRASH_HAS_OBJC
-    const void* object = (const void*)address;
-    const char* zombieClassName = kszombie_className(object);
-    if(zombieClassName != NULL)
-    {
-        writer->addStringElement(writer, key, zombieClassName);
-    }
-#endif
-}
-
 static bool writeObjCObject(const KSCrashReportWriter* const writer,
                             const uintptr_t address,
                             int* limit)
@@ -763,7 +748,6 @@ static void writeMemoryContents(const KSCrashReportWriter* const writer,
     writer->beginObject(writer, key);
     {
         writer->addUIntegerElement(writer, KSCrashField_Address, address);
-        writeZombieIfPresent(writer, KSCrashField_LastDeallocObject, address);
         if(!writeObjCObject(writer, address, limit))
         {
             if(object == NULL)
@@ -814,10 +798,6 @@ static bool isNotableAddress(const uintptr_t address)
     const void* object = (const void*)address;
 
 #if KSCRASH_HAS_OBJC
-    if(kszombie_className(object) != NULL)
-    {
-        return true;
-    }
 
     if(ksobjc_objectType(object) != KSObjCTypeUnknown)
     {
