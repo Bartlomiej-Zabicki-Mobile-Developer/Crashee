@@ -40,8 +40,6 @@ final class CrashReporter {
     init(reportHandler: ReportHandler) {
         self.reportHandler = reportHandler
         subscribeForNotifications()
-        monitoring = kscrash_install(NSString(string: bundleName).utf8String,
-        NSString(string: basePath).utf8String)
     }
     
     // MARK: - Functions
@@ -64,8 +62,13 @@ final class CrashReporter {
         kscrash_deleteReportWithID(Int64(reportId))
     }
     
-    // MARK: - Private implementation
+    ///This function notify ksc about loading but also invokes singleton
+    internal func install() {
+        monitoring = kscrash_install(NSString(string: bundleName).utf8String, NSString(string: basePath).utf8String)
+        didLoad()
+    }
     
+    // MARK: - Private implementation
     
     private func allReports() -> [CrashReport] {
         reportIDs().compactMap({ reportWith(id: $0) })
@@ -81,7 +84,10 @@ final class CrashReporter {
     private func reportWith(id reportId: Int) -> CrashReport? {
         guard let data = reportDataWith(id: reportId) else { return nil }
         do {
-            return try jsonDecoder.decode(CrashReport.self, from: data)
+            guard let json = try JSONSerialization.jsonObject(with: data, options: []) as? JSON else { return nil }
+            let fulfilledJSON = fufillMissingData(in: json)
+            let fufilledData = try JSONSerialization.data(withJSONObject: fulfilledJSON, options: [])
+            return try jsonDecoder.decode(CrashReport.self, from: fufilledData)
         } catch {
             print("Decoding error: \(error)")
             return nil
@@ -104,6 +110,25 @@ final class CrashReporter {
         notificationCenter.addObserver(self, selector: #selector(applicationDidEnterBackground), name: UIApplication.didEnterBackgroundNotification, object: nil)
         notificationCenter.addObserver(self, selector: #selector(applicationWillEnterForeground), name: UIApplication.willEnterForegroundNotification, object: nil)
         notificationCenter.addObserver(self, selector: #selector(applicationWillTerminate), name: UIApplication.willTerminateNotification, object: nil)
+    }
+    
+    private func fufillMissingData(in reportJSON: JSON) -> JSON {
+        var fixableReport = reportJSON["crash"] as? JSON
+        if var fixableReport = fixableReport {
+            fixableReport["diagnosis"] = KSCrashDoctor().diagnoseCrash(reportJSON)
+            var changedReportJSON = reportJSON
+            changedReportJSON["crash"] = fixableReport
+            return changedReportJSON
+        }
+        
+        fixableReport = (reportJSON["recrash_report"] as? JSON)?["crash"] as? JSON
+        if var fixableReport = fixableReport {
+            fixableReport["diagnosis"] = KSCrashDoctor().diagnoseCrash(reportJSON)
+            var changedReportJSON = reportJSON
+            changedReportJSON["crash"] = fixableReport
+            return changedReportJSON
+        }
+        return reportJSON
     }
     
     // MARK: - Notification Actions

@@ -107,6 +107,7 @@ class CrasheeSetup: BasicSetup {
     
     func changeToken(to token: String) {
         self.token = token
+        crashReporter.install()
     }
     
     func reportFieldFor(property: String) -> CrashReportField {

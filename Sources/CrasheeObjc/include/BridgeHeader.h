@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 //#include "../Recording/KSCrash.h"
 #import "../Reporting/Filters/KSCrashReportFilterBasic.h"
-//#import "../Recording/KSCrash.h"
+#import "../Recording/KSCrash.h"
 //#import "../Reporting/Tools/KSCString.h"
 //#import "../Recording/Tools/KSJSONCodecObjC.h"
 //#import "../Recording/Tools/KSLogger.h"
@@ -26,11 +26,11 @@
 //#import "../Reporting/Filters/KSCrashReportFilterGZip.h"
 
 #import "../Recording/KSCrashC.h"
-//#import "../Recording/KSCrashDoctor.h"
+#import "../Recording/KSCrashDoctor.h"
 //#import "../Recording/KSCrashReportFields.h"
 //#import "../Recording/Monitors/KSCrashMonitor_AppState.h"
 //#import "../Recording/Tools/KSJSONCodecObjC.h"
 //#import "../Recording/Tools/NSError+SimpleConstructor.h"
-//#import "../Recording/Monitors/KSCrashMonitorContext.h"
+#import "../Recording/Monitors/KSCrashMonitorContext.h"
 //#import "../Recording/Monitors/KSCrashMonitor_System.h"
 //#import "../Recording/KSSystemCapabilities.h"
