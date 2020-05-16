@@ -45,16 +45,18 @@ public struct BinaryImage: Codable {
 
 // MARK: - Crash
 public struct Crash: Codable {
-    let error: Error
+    let error: ErrorCrash
     var threads: [CrashThread]
+    var diagnosis: String?
 }
 
 // MARK: - Error
-public struct Error: Codable {
+public struct ErrorCrash: Codable {
     let address: Int
-    let mach: Mach
+    let mach: Mach?
     let signal: Signal
     let type: String
+    let exception: Exception
 }
 
 // MARK: - Mach

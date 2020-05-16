@@ -34,6 +34,7 @@ final class CrashReporter {
     private lazy var jsonDecoder: JSONDecoder = .init()
     private(set) var reportHandler: ReportHandler
     private var monitoring: KSCrashMonitorType!
+    private lazy var crashDoctor: CrashDoctor = CrasheeCrashDoctor()
     
     // MARK: - Initialization
     
@@ -84,10 +85,8 @@ final class CrashReporter {
     private func reportWith(id reportId: Int) -> CrashReport? {
         guard let data = reportDataWith(id: reportId) else { return nil }
         do {
-            guard let json = try JSONSerialization.jsonObject(with: data, options: []) as? JSON else { return nil }
-            let fulfilledJSON = fufillMissingData(in: json)
-            let fufilledData = try JSONSerialization.data(withJSONObject: fulfilledJSON, options: [])
-            return try jsonDecoder.decode(CrashReport.self, from: fufilledData)
+            var report = try jsonDecoder.decode(CrashReport.self, from: data)
+            return report.diagnosed(with: crashDoctor)
         } catch {
             print("Decoding error: \(error)")
             return nil
@@ -110,25 +109,6 @@ final class CrashReporter {
         notificationCenter.addObserver(self, selector: #selector(applicationDidEnterBackground), name: UIApplication.didEnterBackgroundNotification, object: nil)
         notificationCenter.addObserver(self, selector: #selector(applicationWillEnterForeground), name: UIApplication.willEnterForegroundNotification, object: nil)
         notificationCenter.addObserver(self, selector: #selector(applicationWillTerminate), name: UIApplication.willTerminateNotification, object: nil)
-    }
-    
-    private func fufillMissingData(in reportJSON: JSON) -> JSON {
-        var fixableReport = reportJSON["crash"] as? JSON
-        if var fixableReport = fixableReport {
-            fixableReport["diagnosis"] = KSCrashDoctor().diagnoseCrash(reportJSON)
-            var changedReportJSON = reportJSON
-            changedReportJSON["crash"] = fixableReport
-            return changedReportJSON
-        }
-        
-        fixableReport = (reportJSON["recrash_report"] as? JSON)?["crash"] as? JSON
-        if var fixableReport = fixableReport {
-            fixableReport["diagnosis"] = KSCrashDoctor().diagnoseCrash(reportJSON)
-            var changedReportJSON = reportJSON
-            changedReportJSON["crash"] = fixableReport
-            return changedReportJSON
-        }
-        return reportJSON
     }
     
     // MARK: - Notification Actions
