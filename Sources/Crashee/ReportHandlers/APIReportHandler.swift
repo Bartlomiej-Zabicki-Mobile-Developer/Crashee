@@ -5,7 +5,7 @@
 //  Created by Bartłomiej Zabicki on 14/05/2020.
 //
 
-import CrasheeObjc
+import Foundation
 
 protocol ReportHandler {
     func handle(reports: [CrashReport], completion: @escaping ReportsCompletion)

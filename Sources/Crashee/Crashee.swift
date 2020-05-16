@@ -21,7 +21,10 @@ public final class Crashee {
     
     public func sendAllReports(completion: @escaping ReportsCompletion) {
         setup.sendAllReports(completion: completion)
-        
+    }
+    
+    public func deleteAllReports(completion: DeleteReportsCompletion) {
+        setup.deleteAllReports(completion: completion)
     }
     
 }

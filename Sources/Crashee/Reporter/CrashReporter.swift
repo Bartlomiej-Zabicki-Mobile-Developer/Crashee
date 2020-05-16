@@ -13,6 +13,7 @@ public enum ReportsError: Swift.Error {
 }
 
 public typealias ReportsCompletion = (Result<[CrashReport], ReportsError>) -> Void
+public typealias DeleteReportsCompletion = () -> Void
 
 final class CrashReporter {
     
@@ -32,18 +33,12 @@ final class CrashReporter {
     }()
     private lazy var jsonDecoder: JSONDecoder = .init()
     private(set) var reportHandler: ReportHandler
-    private(set) var onCrash: KSReportWriteCallback? {
-        didSet {
-            kscrash_setCrashNotifyCallback(onCrash)
-        }
-    }
     private var monitoring: KSCrashMonitorType!
     
     // MARK: - Initialization
     
-    init(reportHandler: ReportHandler, crashCompletion: inout KSReportWriteCallback?) {
+    init(reportHandler: ReportHandler) {
         self.reportHandler = reportHandler
-        self.onCrash = crashCompletion
         subscribeForNotifications()
         monitoring = kscrash_install(NSString(string: bundleName).utf8String,
         NSString(string: basePath).utf8String)
@@ -52,11 +47,17 @@ final class CrashReporter {
     // MARK: - Functions
     
     internal func sendAllReports(with completion: @escaping ReportsCompletion) {
+        let reports = allReports()
+        guard !reports.isEmpty else {
+            completion(.success([]))
+            return 
+        }
         send(reports: allReports(), completion: completion)
     }
     
-    internal func deleteAllReports() {
+    internal func deleteAllReports(with completion: DeleteReportsCompletion) {
         kscrash_deleteAllReports()
+        completion()
     }
     
     internal func deleteReport(withId reportId: Int) {

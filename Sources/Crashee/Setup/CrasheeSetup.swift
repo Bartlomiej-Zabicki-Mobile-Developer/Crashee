@@ -5,7 +5,7 @@
 //  Created by Bartłomiej Zabicki on 14/05/2020.
 //
 
-import CrasheeObjc
+import Foundation
 
 struct ReportField {
     var key: String
@@ -20,26 +20,26 @@ struct ReportField {
 }
 
 class CrashHandlerData {
-    var userCrashCallback: KSReportWriteCallback?
+//    var userCrashCallback: KSReportWriteCallback?
     var reportFieldsCount: Int
     var reportFields: [ReportField]
     
     init(reportFieldsCount: Int, reportFields: [ReportField]) {
         self.reportFieldsCount = reportFieldsCount
         self.reportFields = reportFields
-        userCrashCallback = nil
+//        userCrashCallback = nil
     }
 }
 
-func crashCallback(writer: inout KSCrashReportWriter) -> KSCrashReportWriter {
-    for reportField in CrasheeSetup.g_crashHandlerData.reportFields {
-        writer.addJSONElement(&writer, reportField.key, reportField.value, true)
-    }
-    if let callback = CrasheeSetup.g_crashHandlerData.userCrashCallback {
-        callback(&writer)
-    }
-    return writer
-}
+//func crashCallback(writer: inout KSCrashReportWriter) -> KSCrashReportWriter {
+//    for reportField in CrasheeSetup.g_crashHandlerData.reportFields {
+//        writer.addJSONElement(&writer, reportField.key, reportField.value, true)
+//    }
+//    if let callback = CrasheeSetup.g_crashHandlerData.userCrashCallback {
+//        callback(&writer)
+//    }
+//    return writer
+//}
 
 protocol CrasheeConverter {}
 
@@ -79,23 +79,18 @@ class CrashReportField {
 }
 
 protocol BasicSetup {
-    var onCrash: KSReportWriteCallback? { get  set }
     func converter() -> CrasheeConverter
     func sendAllReports(completion: @escaping ReportsCompletion)
     func deleteAllReports(completion: DeleteCompletion)
-    func addPreFilter(_ filter: KSCrashReportFilter?)
 }
 
 class CrasheeSetup: BasicSetup {
-    
-    static var g_crashHandlerData: CrashHandlerData = .init(reportFieldsCount: 0, reportFields: [])
     
     
     var nextFieldIndex: Int = 0
     var crashHandlerDataBacking: NSMutableData?
     var crashHandlerData: CrashHandlerData?
     var fields: [String: CrashReportField] = [:]
-    var prependedFilters: KSCrashReportFilterPipeline = KSCrashReportFilterPipeline()
     private lazy var bundleName: String = (Bundle.main.infoDictionary?["CFBundleName"] ?? "Unknown") as! String
     private var token: String = ""
     private lazy var urlSession = URLSession(configuration: .default)
@@ -106,13 +101,7 @@ class CrasheeSetup: BasicSetup {
                                                                                   "bundleId": Bundle.main.bundleIdentifier ?? ""],
                                                                         method: .post,
                                                                         session: urlSession))
-    private lazy var crashReporter: CrashReporter = CrashReporter.init(reportHandler: apiHandler, crashCompletion: &onCrash)
-    
-    var onCrash: KSReportWriteCallback? {
-        didSet {
-            crashHandlerData?.userCrashCallback = onCrash
-        }
-    }
+    private lazy var crashReporter: CrashReporter = CrashReporter.init(reportHandler: apiHandler)
     
     // MARK: - Functions
     
@@ -150,12 +139,8 @@ class CrasheeSetup: BasicSetup {
         crashReporter.sendAllReports(with: completion)
     }
     
-    func deleteAllReports(completion: DeleteCompletion) {
-        
-    }
-    
-    func addPreFilter(_ filter: KSCrashReportFilter?) {
-        
+    func deleteAllReports(completion: DeleteReportsCompletion) {
+        crashReporter.deleteAllReports(with: completion)
     }
     
     
