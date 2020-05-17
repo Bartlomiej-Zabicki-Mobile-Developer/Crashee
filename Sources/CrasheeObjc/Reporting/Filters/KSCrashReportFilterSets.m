@@ -28,7 +28,6 @@
 #import "KSCrashReportFilterSets.h"
 #import "KSCrashReportFilterBasic.h"
 #import "KSCrashReportFilterJSON.h"
-#import "KSCrashReportFilterGZip.h"
 #import "../../Recording/KSCrashReportFields.h"
 
 @implementation KSCrashFilterSets
@@ -61,7 +60,6 @@
     if(compressed)
     {
         [filters addObject:[KSCrashReportFilterStringToData filter]];
-        [filters addObject:[KSCrashReportFilterGZipCompress filterWithCompressionLevel:-1]];
     }
 
     return [KSCrashReportFilterPipeline filterWithFilters:filters, nil];
