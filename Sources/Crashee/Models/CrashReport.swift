@@ -94,7 +94,6 @@ public struct CrashThread: Codable {
     var backtrace: Backtrace
     let crashed, currentThread: Bool
     let index: Int
-//    let notableAddresses: [String: String]?
     let registers: Registers?
     let stack: Stack?
     let name: String?
@@ -103,7 +102,6 @@ public struct CrashThread: Codable {
         case backtrace, crashed
         case currentThread = "current_thread"
         case index
-//        case notableAddresses = "notable_addresses"
         case registers, stack, name
     }
 }
@@ -173,12 +171,10 @@ public struct Debug: Codable {
 // MARK: - Report
 public struct Report: Codable {
     let id, processName: String
-//    let timestamp: Date?
     let type, version: String
 
     enum CodingKeys: String, CodingKey {
         case id
-//        case timestamp
         case processName = "process_name"
         case type, version
     }
@@ -188,11 +184,9 @@ public struct Report: Codable {
 public struct System: Codable {
     let cfBundleExecutable, cfBundleExecutablePath, cfBundleIdentifier, cfBundleName: String
     let cfBundleShortVersionString, cfBundleVersion: String
-//    let appStartTime: Double?
     let appUUID: String
     let applicationStats: ApplicationStats
     let binaryCPUSubtype, binaryCPUType: Int
-//    let bootTime: Date?
     let buildType, cpuArch: String
     let cpuSubtype, cpuType: Int
     let deviceAppHash: String
@@ -212,12 +206,10 @@ public struct System: Codable {
         case cfBundleName = "CFBundleName"
         case cfBundleShortVersionString = "CFBundleShortVersionString"
         case cfBundleVersion = "CFBundleVersion"
-//        case appStartTime = "app_start_time"
         case appUUID = "app_uuid"
         case applicationStats = "application_stats"
         case binaryCPUSubtype = "binary_cpu_subtype"
         case binaryCPUType = "binary_cpu_type"
-//        case bootTime = "boot_time"
         case buildType = "build_type"
         case cpuArch = "cpu_arch"
         case cpuSubtype = "cpu_subtype"
