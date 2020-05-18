@@ -71,10 +71,10 @@ static Monitor g_monitors[] =
     },
 #endif
 #if KSCRASH_HAS_OBJC
-//    {
-//        .monitorType = KSCrashMonitorTypeNSException,
-//        .getAPI = kscm_nsexception_getAPI,
-//    },
+    {
+        .monitorType = KSCrashMonitorTypeNSException,
+        .getAPI = kscm_nsexception_getAPI,
+    },
 #endif
     {
         .monitorType = KSCrashMonitorTypeCPPException,
