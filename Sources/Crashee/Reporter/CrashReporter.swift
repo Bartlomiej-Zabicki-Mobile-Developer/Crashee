@@ -27,13 +27,13 @@ final class CrashReporter {
         }
         let dirURL = URL(fileURLWithPath: path, isDirectory: true)
         //TODO: - Change to CrasheeReports
-        let folderName: String = "KSCrash"
+        let folderName: String = "CrasheeCrash"
         return dirURL.appendingPathComponent(folderName)
             .appendingPathComponent(bundleName).path.replacingOccurrences(of: " ", with: "-")
     }()
     private lazy var jsonDecoder: JSONDecoder = .init()
     private(set) var reportHandler: ReportHandler
-    private var monitoring: KSCrashMonitorType!
+    private var monitoring: CrasheeCrashMonitorType!
     private lazy var crashDoctor: CrashDoctor = CrasheeCrashDoctor()
     
     // MARK: - Initialization
@@ -55,17 +55,17 @@ final class CrashReporter {
     }
     
     internal func deleteAllReports(with completion: DeleteReportsCompletion) {
-        kscrash_deleteAllReports()
+        crasheecrash_deleteAllReports()
         completion()
     }
     
     internal func deleteReport(withId reportId: Int) {
-        kscrash_deleteReportWithID(Int64(reportId))
+        crasheecrash_deleteReportWithID(Int64(reportId))
     }
     
-    ///This function notify ksc about loading but also invokes singleton
+    ///This function notify crasheec about loading but also invokes singleton
     internal func install() {
-        monitoring = kscrash_install(NSString(string: bundleName).utf8String, NSString(string: basePath).utf8String)
+        monitoring = crasheecrash_install(NSString(string: bundleName).utf8String, NSString(string: basePath).utf8String)
         didLoad()
     }
     
@@ -76,9 +76,9 @@ final class CrashReporter {
         
     }
     private func reportIDs() -> [Int] {
-        let reportsCount = kscrash_getReportCount()
+        let reportsCount = crasheecrash_getReportCount()
         var reportIDs: [Int64] = .init(repeating: 0, count: Int(reportsCount))
-        kscrash_getReportIDs(&reportIDs, reportsCount)
+        crasheecrash_getReportIDs(&reportIDs, reportsCount)
         return reportIDs.compactMap({ Int($0) })
     }
     
@@ -94,7 +94,7 @@ final class CrashReporter {
     }
     
     private func reportDataWith(id: Int) -> Data? {
-        guard let report = kscrash_readReport(Int64(id)) else { return nil }
+        guard let report = crasheecrash_readReport(Int64(id)) else { return nil }
         return Data(bytesNoCopy: report, count: strlen(report), deallocator: .free)
     }
     
@@ -114,27 +114,27 @@ final class CrashReporter {
     // MARK: - Notification Actions
     
     private func didLoad() {
-        kscrash_notifyObjCLoad()
+        crasheecrash_notifyObjCLoad()
     }
     
     @objc private func applicationDidBecomeActive() {
-        kscrash_notifyAppActive(true)
+        crasheecrash_notifyAppActive(true)
     }
     
     @objc private func applicationWillResignActive() {
-        kscrash_notifyAppActive(false)
+        crasheecrash_notifyAppActive(false)
     }
     
     @objc private func applicationDidEnterBackground() {
-        kscrash_notifyAppInForeground(false)
+        crasheecrash_notifyAppInForeground(false)
     }
     
     @objc private func applicationWillEnterForeground() {
-        kscrash_notifyAppInForeground(true)
+        crasheecrash_notifyAppInForeground(true)
     }
     
     @objc private func applicationWillTerminate() {
-        kscrash_notifyAppTerminate()
+        crasheecrash_notifyAppTerminate()
     }
     
 }

@@ -8,5 +8,5 @@
 
 #import <Foundation/Foundation.h>
 
-#import "../Recording/KSCrashC.h"
+#import "../Recording/CrasheeCrashC.h"
 

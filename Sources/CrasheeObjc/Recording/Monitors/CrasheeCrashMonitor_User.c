@@ -1,0 +1,121 @@
+//
+//  CrasheeCrashMonitor_User.c
+//
+//  Copyright (c) 2012 Karl Stenerud. All rights reserved.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall remain in place
+// in this source code.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+//
+
+#include "CrasheeCrashMonitor_User.h"
+#include "CrasheeCrashMonitorContext.h"
+#include "../Tools/CrasheeID.h"
+#include "../Tools/CrasheeThread.h"
+#include "../Tools/CrasheeStackCursor_SelfThread.h"
+
+//#define CrasheeLogger_LocalLevel TRACE
+#include "../Tools/CrasheeLogger.h"
+
+#include <memory.h>
+#include <stdlib.h>
+
+
+/** Context to fill with crash information. */
+
+static volatile bool g_isEnabled = false;
+
+
+void crasheecm_reportUserException(const char* name,
+                              const char* reason,
+                              const char* language,
+                              const char* lineOfCode,
+                              const char* stackTrace,
+                              bool logAllThreads,
+                              bool terminateProgram)
+{
+    if(!g_isEnabled)
+    {
+        CrasheeLOG_WARN("User-reported exception monitor is not installed. Exception has not been recorded.");
+    }
+    else
+    {
+        thread_act_array_t threads = NULL;
+        mach_msg_type_number_t numThreads = 0;
+        if(logAllThreads)
+        {
+            crasheemc_suspendEnvironment(&threads, &numThreads);
+        }
+        if(terminateProgram)
+        {
+            crasheecm_notifyFatalExceptionCaptured(false);
+        }
+
+        char eventID[37];
+        crasheeid_generate(eventID);
+        CrasheeMC_NEW_CONTEXT(machineContext);
+        crasheemc_getContextForThread(crasheethread_self(), machineContext, true);
+        CrasheeStackCursor stackCursor;
+        crasheesc_initSelfThread(&stackCursor, 0);
+
+
+        CrasheeLOG_DEBUG("Filling out context.");
+        CrasheeCrash_MonitorContext context;
+        memset(&context, 0, sizeof(context));
+        context.crashType = CrasheeCrashMonitorTypeUserReported;
+        context.eventID = eventID;
+        context.offendingMachineContext = machineContext;
+        context.registersAreValid = false;
+        context.crashReason = reason;
+        context.userException.name = name;
+        context.userException.language = language;
+        context.userException.lineOfCode = lineOfCode;
+        context.userException.customStackTrace = stackTrace;
+        context.stackCursor = &stackCursor;
+
+        crasheecm_handleException(&context);
+
+        if(logAllThreads)
+        {
+            crasheemc_resumeEnvironment(threads, numThreads);
+        }
+        if(terminateProgram)
+        {
+            abort();
+        }
+    }
+}
+
+static void setEnabled(bool isEnabled)
+{
+    g_isEnabled = isEnabled;
+}
+
+static bool isEnabled()
+{
+    return g_isEnabled;
+}
+
+CrasheeCrashMonitorAPI* crasheecm_user_getAPI()
+{
+    static CrasheeCrashMonitorAPI api =
+    {
+        .setEnabled = setEnabled,
+        .isEnabled = isEnabled
+    };
+    return &api;
+}
