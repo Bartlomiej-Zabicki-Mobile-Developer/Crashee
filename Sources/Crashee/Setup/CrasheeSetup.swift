@@ -20,7 +20,7 @@ public final class CrasheeSetupImpl: CrasheeSetup {
     private(set) public var token: String
     private lazy var bundleName: String = (Bundle.main.infoDictionary?["CFBundleName"] ?? "Unknown") as! String
     private lazy var urlSession = URLSession(configuration: .default)
-    private lazy var apiHandler = APIReportHandler(url: URL(string: "https://5fbae2a9.ngrok.io/crashreport")!,
+    private lazy var apiHandler = APIReportHandler(url: URL(string: "https://6597dd204e20.ngrok.io/crashreport")!,
                                                    configuration: .init(headers: ["organizationToken": token,
                                                                                   "User-Agent": "Crashee",
                                                                                   "bundleName": bundleName,

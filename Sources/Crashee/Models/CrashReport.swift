@@ -56,7 +56,7 @@ public struct ErrorCrash: Codable {
     let mach: Mach?
     let signal: Signal
     let type: String
-    let exception: Exception
+    let exception: Exception?
 }
 
 // MARK: - Mach
